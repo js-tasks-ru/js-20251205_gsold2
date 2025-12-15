@@ -4,5 +4,18 @@
  * @returns {function} - function-getter which allow get value from object by set path
  */
 export function createGetter(path) {
+    const fields = path.split('.');
 
+    return function (obj) {
+
+        for (const field of fields) {
+            if (Object.hasOwn(obj, field)) {
+                obj = obj[field];
+            } else {
+               return undefined; 
+            }
+        }
+
+        return obj;
+    };
 }
