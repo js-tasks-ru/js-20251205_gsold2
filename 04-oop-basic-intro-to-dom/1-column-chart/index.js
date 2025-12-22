@@ -1,77 +1,96 @@
 export default class ColumnChart {
-    _data;
-    _label;
-    _link;
-    _value;
-    chartHeight;
-    formatHeading;
-    element = document.createElement('div');
+    #data;
+    #label;
+    #link;
+    #value;
+    #chartHeight;
+    #formatHeading;
+    #element;
 
     constructor({ data = [], chartHeight = 50, label = 'orders', link = '', value = 0, formatHeading = data => `${data}` } = {}) {
-        this._data = data;
-        this.chartHeight = chartHeight;
-        this._label = label;
-        this._link = link;
-        this._value = value;
-        this.formatHeading = formatHeading;
-        this._create();
+        this.#data = data;
+        this.#chartHeight = chartHeight;
+        this.#label = label;
+        this.#link = link;
+        this.#value = value;
+        this.#formatHeading = formatHeading;
+        this.#element = document.createElement('div');
+        this.#render();
     }
 
-    _create() {
-        this.element.classList.add('column-chart');
-        if (this._data.length === 0) {
-            this.element.classList.add('column-chart_loading');
+    #render() {
+        this.#element.classList.add('column-chart');
+        if (this.#data.length === 0) {
+            this.#element.classList.add('column-chart_loading');
         }
-        this.element.style.setProperty("--chart-height", this.chartHeight);
+        this.#element.style.setProperty("--chart-height", this.#chartHeight);
 
         let innerHtml = `
             <div class="column-chart__title">
-                Total ${this._label}
-                ${this._addHref()}
+                Total ${this.#label}
+                ${this.#addHref()}
             </div>
             <div class="column-chart__container">
-                ${this._addCartHeader()}
+                ${this.#addCartHeader()}
                 <div data-element="body" class="column-chart__chart">
-                    ${this._addChart()}
+                    ${this.#addChart()}
                 </div>
             </div>`;
 
-        this.element.innerHTML = innerHtml;
+        this.#element.innerHTML = innerHtml;
     }
 
-    _addHref() {
-        return this._link !== '' ? `<a href="/${this._link}" class="column-chart__link">View all</a>` : '';
+    #addHref() {
+        return this.#link !== '' ? `<a href="/${this.#link}" class="column-chart__link">View all</a>` : '';
     }
 
-    _addCartHeader() {
-        return this._value !== 0 ? `<div data-element="header" class="column-chart__header">${this.formatHeading(this._value)}</div>` : '';
+    #addCartHeader() {
+        return this.#value !== 0 ? `<div data-element="header" class="column-chart__header">${this.#formatHeading(this.#value)}</div>` : '';
     }
 
-    _addChart() {
-        let maxValue = Math.max(...this._data);
-        let scale = 50 / maxValue;
+    #addChart() {
+        let maxValue = Math.max(...this.#data);
+        let scale = this.#chartHeight / maxValue;
 
-        return this._data.reduce((accumulator, item) => {
-            let percent = (item / maxValue * 100).toFixed(0);
-            let value = Math.floor(item * scale);
+        return this.#data
+            .map((item) => {
+                let percent = (item / maxValue * 100).toFixed(0);
+                let value = Math.floor(item * scale);
 
-            accumulator = accumulator + `<div style="--value: ${value}" data-tooltip="${percent}%"></div>`
-
-            return accumulator;
-        },
-            '');
+                return `<div style="--value: ${value}" data-tooltip="${percent}%"></div>`;
+            })
+            .join('');
     }
 
     update(data) {
-        this._data = data;
-        this._create();
+        this.#data = data;
+        let chart = this.#element.querySelector('.column-chart__chart');
+        chart.style.display = 'none';
+        chart.style.display = '';
     }
 
     destroy() {
-        console.log('This is a stub for the destroy() method')
+        this.remove();
+        this.element = null;
     }
 
     remove() {
-        this.element.remove();
+        this.#element.remove();
+    }
+
+    get chartHeight() {
+        return this.#chartHeight;
+    }
+
+    get chartformatHeading() {
+        return this.#formatHeading;
+    }
+
+    get element() {
+        return this.#element;
+    }
+
+    set element(value) {
+        return this.#element = value;
     }
 }
