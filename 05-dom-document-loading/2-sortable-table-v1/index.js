@@ -63,9 +63,9 @@ export default class SortableTable {
     let { title, sortable, sortType } = this.#headers.filter(e => e.id === header)[0];
     if (sortable === false) throw new TypeError(`Column with title '${title}' is not sortable`);
 
-    if (sortType == 'number') {
+    if (sortType === 'number') {
       this.#data.sort((a, b) => direction * (a[header] - b[header]));
-    } else if (sortType == 'string') {
+    } else if (sortType === 'string') {
       this.#data.sort((a, b) => direction * (a[header].localeCompare(b[header], ['ru', 'en'], { caseFirst: 'upper' })));
     } else {
       throw new TypeError(`Invalide sortType '${sortType}'. It should be 'number' or 'string'`);
