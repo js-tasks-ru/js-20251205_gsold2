@@ -43,7 +43,7 @@ export default class ColumnChart {
 
         this.#element = this.#createElement(innerHtml);
         this.#subElements = this.#element.querySelector('[data-element="body"]');
-     }
+    }
 
     #createElement(html) {
         const tmp = document.createElement('div');
@@ -115,6 +115,8 @@ export default class ColumnChart {
     }
 
     get subElements() {
-        return this.#subElements;
+        return {
+            body: this.#subElements
+        };
     }
 }
