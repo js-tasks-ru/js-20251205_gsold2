@@ -8,7 +8,7 @@ export default class DoubleSlider {
     const { left: innerLeft, right: innerRight, width } = this.subElements.inner.getBoundingClientRect();
 
     if (this.dragging === this.subElements.thumbLeft) {
-      let newLeft = (event.clientX - innerLeft + this.shiftX) / width;
+      let newLeft = (event.clientX - innerLeft - this.shiftX) / width;
 
       if (newLeft < 0) {
         newLeft = 0;
@@ -147,12 +147,14 @@ export default class DoubleSlider {
 
     event.preventDefault();
 
-    const { left, right } = thumbElem.getBoundingClientRect();
-
     if (thumbElem === this.subElements.thumbLeft) {
-      this.shiftX = right - event.clientX;
+      const { left } = thumbElem.getBoundingClientRect();
+
+      this.shiftX = event.clientX - left;
     } else {
-      this.shiftX = left - event.clientX;
+      const { right } = thumbElem.getBoundingClientRect();
+
+      this.shiftX = right - event.clientX;
     }
 
     this.dragging = thumbElem;
