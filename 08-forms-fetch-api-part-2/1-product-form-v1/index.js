@@ -25,9 +25,6 @@ export default class ProductForm {
     async render() {
         this.#element = this.#renderElement();
 
-        this.#initFormOnSubmit();
-        this.#initUpLoadImageBtnOnclick();
-
         await this.#fetchProductsAndCategories();
 
         if (this.id) {
@@ -36,6 +33,10 @@ export default class ProductForm {
         }
 
         this.#addCategories();
+
+        this.productForm.onsubmit = this.#onSubmit;
+        this.element.querySelector('[name="uploadImage"]').onclick = this.#uploadImage;
+
         return this.element;
     }
 
@@ -106,11 +107,6 @@ export default class ProductForm {
         return tmp.firstElementChild;
     }
 
-    #initUpLoadImageBtnOnclick() {
-        let uploadImageBtn = this.element.querySelector('[name="uploadImage"]');
-        uploadImageBtn.onclick = this.#uploadImage;
-    }
-
     async #uploadImage() {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -151,58 +147,54 @@ export default class ProductForm {
         this.images.appendChild(image);
     }
 
-    #initFormOnSubmit() {
-        let form = this.element.querySelector('[data-element="productForm"]');
+    #onSubmit = async event => {
+        event.preventDefault();
 
-        form.onsubmit = async (event) => {
-            event.preventDefault();
+        let formData = new FormData(this.productForm);
+        formData.set('id', escapeHtml(this.id));
+        let url = formData.getAll('url');
+        let source = formData.getAll('source');
+        formData.delete('url');
+        formData.delete('source');
 
-            let formData = new FormData(form);
-            formData.set('id', escapeHtml(this.#id));
-            let url = formData.getAll('url');
-            let source = formData.getAll('source');
-            formData.delete('url');
-            formData.delete('source');
+        let arrOfStr = ['description', 'id', 'subcategory', 'title'];
+        arrOfStr.forEach((item) => {
+            let tmp = escapeHtml(formData.get(`${item}`));
+            formData.append(`${item}`, tmp);
+        });
 
-            let arrOfStr = ['description', 'id', 'subcategory', 'title'];
-            arrOfStr.forEach((item) => {
-                let tmp = escapeHtml(formData.get(`${item}`));
-                formData.append(`${item}`, tmp);
-            });
+        let obj = Object.fromEntries(formData);
 
-            let obj = Object.fromEntries(formData);
+        let images = [];
+        source.forEach((value, index) => {
+            let image = { 'source': escapeHtml(value), 'url': escapeHtml(url[index]) };
+            images.push(image);
+        });
 
-            let images = [];
-            source.forEach((value, index) => {
-                let image = { 'source': escapeHtml(value), 'url': escapeHtml(url[index]) };
-                images.push(image);
-            });
+        obj['images'] = images;
 
-            obj['images'] = images;
+        let arrOfInt = ['discount', 'price', 'quantity', 'status'];
+        arrOfInt.forEach((item) => { obj[`${item}`] = parseInt(obj[item]) });
 
-            let arrOfInt = ['discount', 'price', 'quantity', 'status'];
-            arrOfInt.forEach((item) => { obj[`${item}`] = parseInt(obj[item]) });
+        let response = await fetch(this.#productsUrl, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json;charset=UTF-8"
+            },
+            body: JSON.stringify(obj),
+        });
 
-            let response = await fetch(this.#productsUrl, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json;charset=UTF-8"
-                },
-                body: JSON.stringify(obj),
-            });
+        if (!response.ok) {
+            console.log('Fail to save product');
+        }
 
-            if (!response.ok) {
-                console.log('Fail to save product');
-            }
+        if (this.id) {
+            this.productForm.dispatchEvent(new CustomEvent("product-updated"));
+        } else {
+            this.productForm.dispatchEvent(new CustomEvent("product-saved"));
+        }
 
-            if (this.id) {
-                form.dispatchEvent(new CustomEvent("product-updated"));
-            } else {
-                form.dispatchEvent(new CustomEvent("product-saved"));
-            }
-
-            return false;
-        };
+        return false;
     }
 
     async #fetchProductsAndCategories() {
@@ -279,6 +271,10 @@ export default class ProductForm {
         return this.#element;
     }
 
+    get productForm() {
+        return this.#element.querySelector('[data-element="productForm"]');
+    }
+
     get id() {
         return this.#id;
     }
@@ -289,8 +285,8 @@ export default class ProductForm {
 
     remove() {
         this.element.remove();
-        //TODO вынести EventListener в отдельные функции, а потом удалить.
-        //document.removeEventListener('scroll', this.onWindowScroll);
+        document.removeEventListener('submit', this.#onSubmit);
+        document.removeEventListener('click', this.#uploadImage);
     }
 
     destroy() {
