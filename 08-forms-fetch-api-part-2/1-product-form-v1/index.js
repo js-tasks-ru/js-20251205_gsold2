@@ -117,6 +117,8 @@ export default class ProductForm {
             fileInput.click();
         })
 
+        fileInput.remove();
+
         if (!file) {
             console.log("Fail to select file");
             return;
