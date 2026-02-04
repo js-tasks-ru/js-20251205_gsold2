@@ -287,8 +287,6 @@ export default class ProductForm {
 
     remove() {
         this.element.remove();
-        document.removeEventListener('submit', this.#onSubmit);
-        document.removeEventListener('click', this.#uploadImage);
     }
 
     destroy() {
