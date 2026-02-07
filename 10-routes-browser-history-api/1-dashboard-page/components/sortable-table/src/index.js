@@ -15,14 +15,14 @@ export default class SortableTable {
     const { bottom } = this.element.getBoundingClientRect();
     const { id, order } = this.sorted;
 
-    if (bottom < document.documentElement.clientHeight && !this.loading && !this.sortLocally) {
+    if (bottom < document.documentElement.clientHeight && !this.loading && !this.isSortLocally) {
       this.start = this.end;
       this.end = this.start + this.step;
 
       this.loading = true;
 
       const data = await this.loadData(id, order, this.start, this.end);
-      this.update(data);
+      this.addRows(data);
 
       this.loading = false;
     }
@@ -114,13 +114,13 @@ export default class SortableTable {
     return data;
   }
 
-  addRows(data) {
+  update(data) {
     this.data = data;
 
     this.subElements.body.innerHTML = this.getTableRows(data);
   }
 
-  update(data) {
+  addRows(data) {
     const rows = document.createElement('div');
 
     this.data = [...this.data, ...data];
@@ -220,7 +220,7 @@ export default class SortableTable {
   renderRows(data) {
     if (data.length) {
       this.element.classList.remove('sortable-table_empty');
-      this.addRows(data);
+      this.update(data);
     } else {
       this.element.classList.add('sortable-table_empty');
     }
